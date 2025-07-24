@@ -32,14 +32,10 @@ const GameTimer = ({ onTimeUp, isGameActive }) => {
   };
 
   return (
-    <div className="flex items-center justify-center bg-white rounded-lg px-6 py-3 shadow-lg border">
-      <div className="text-center">
-        <div className="text-sm text-gray-600 mb-1">Timer</div>
-        <div className={`text-2xl font-bold ${getTimerColor()}`}>
-          {formatTime(timeLeft)}
-        </div>
+    <div className="mt-12 z-10 bg-yellow-400 text-[#3B2EDB] font-bold px-5 py-2 rounded-full flex items-center justify-center space-x-2 text-lg">
+        <div className="w-3 h-3 bg-[#3B2EDB] rounded-full" />
+        <span>{formatTime(timeLeft)}</span>
       </div>
-    </div>
   );
 };
 

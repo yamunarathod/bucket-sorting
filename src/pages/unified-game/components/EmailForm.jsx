@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
 
 const EmailForm = ({ onEmailSubmit }) => {
   const [email, setEmail] = useState('');
@@ -43,19 +41,20 @@ const EmailForm = ({ onEmailSubmit }) => {
 
   return (
     <div
-      className="h-screen w-screen flex items-center justify-center "
+      className="h-screen w-screen flex items-center justify-center px-4 overflow-hidden"
       style={{
         backgroundImage: "url('/assets/images/s1.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
-        
       }}
     >
       <div className="w-full max-w-3xl flex flex-col items-center">
-        <h1 className="text-[48px] font-bold text-[#00B5DB] text-center mb-16">Sort into buckets</h1>
+        <h1 className="text-[32px] sm:text-[40px] md:text-[48px] font-bold text-[#00B5DB] text-center mb-12 sm:mb-16">
+          Sort into buckets
+        </h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-16 items-center">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8 sm:gap-12 items-center w-full px-4">
           <input
             type="email"
             placeholder="Enter E-mail address"
@@ -63,19 +62,19 @@ const EmailForm = ({ onEmailSubmit }) => {
             onChange={handleEmailChange}
             disabled={isLoading}
             required
-            className="w-[600px] h-[90px] px-8 text-3xl bg-[#4291C3] border border-[#4315EF] text-white placeholder-white text-center rounded-[12px] shadow-md focus:outline-none"
+            className="w-full max-w-xl h-[64px] sm:h-[80px] md:h-[90px] px-4 sm:px-6 text-lg sm:text-2xl md:text-3xl bg-[#4291C3] border border-[#4315EF] text-white placeholder-white text-center rounded-[12px] shadow-md focus:outline-none"
           />
 
           <button
             type="submit"
             disabled={!isValidEmail || isLoading}
-            className="w-[400px] h-[80px] bg-[#4315EF] text-white text-2xl font-semibold rounded-full shadow-xl hover:opacity-90 transition-all"
+            className="w-full max-w-xs h-[60px] sm:h-[70px] md:h-[80px] bg-[#4315EF] text-white text-lg sm:text-xl md:text-2xl font-semibold rounded-full shadow-xl hover:opacity-90 transition-all"
           >
             {isLoading ? 'Starting...' : 'Submit'}
           </button>
         </form>
 
-        {error && <p className="text-lg text-red-600 mt-8">{error}</p>}
+        {error && <p className="text-md sm:text-lg text-red-600 mt-6 sm:mt-8 text-center">{error}</p>}
       </div>
     </div>
   );
