@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import EmailForm from './components/EmailForm';
 import GameTimer from '../game-play-screen/components/GameTimer';
 import ActionButtons from './components/ActionButtons';
+import { useGameResults } from '../../hooks/useGameResults';
 
 const UnifiedGameScreen = () => {
   const [gamePhase, setGamePhase] = useState('email');
@@ -15,6 +16,9 @@ const UnifiedGameScreen = () => {
   const [gameStartTime, setGameStartTime] = useState(null);
   const [gameEndTime, setGameEndTime] = useState(null);
   const [animatedBucketCategory, setAnimatedBucketCategory] = useState(null);
+
+  // Initialize game results hook
+  const { submitResults } = useGameResults();
 
   const skillsData = [
     { id: 1, skill: "I want to onboard to FBF", category: "GROWTH" },
@@ -45,11 +49,27 @@ const UnifiedGameScreen = () => {
     localStorage.setItem('gameStartTime', new Date().toISOString());
   };
 
-  const handleTimeUp = useCallback(() => {
+  const handleTimeUp = useCallback(async () => {
     setIsGameActive(false);
     setGameEndTime(new Date());
+    
+    // Submit game results to API (non-blocking with validation)
+    try {
+      if (playerEmail && playerEmail.trim() !== '' && typeof score === 'number') {
+        await submitResults(playerEmail, score);
+      } else {
+        console.warn('Game results not submitted: missing or invalid data', { 
+          email: playerEmail, 
+          score: score 
+        });
+      }
+    } catch (error) {
+      // Error is already handled in the hook, but log for additional context
+      console.error('Error during game completion API submission:', error);
+    }
+    
     setGamePhase('results');
-  }, []);
+  }, [playerEmail, score, submitResults]);
 
   const handleDragStart = (skillId) => {
     setDraggedSkillId(skillId);
@@ -82,9 +102,32 @@ const UnifiedGameScreen = () => {
 
     const newPlacedCount = Object.keys(placedSkills).length + 1;
     if (newPlacedCount === skills.length) {
-      setTimeout(() => {
+      setTimeout(async () => {
         setIsGameActive(false);
         setGameEndTime(new Date());
+        
+        // Submit game results to API when all skills are placed (non-blocking with validation)
+        try {
+          if (playerEmail && playerEmail.trim() !== '') {
+            const finalScore = isCorrect ? score + 1 : score;
+            if (typeof finalScore === 'number') {
+              await submitResults(playerEmail, finalScore);
+            } else {
+              console.warn('Game results not submitted: invalid final score', { 
+                email: playerEmail, 
+                finalScore: finalScore 
+              });
+            }
+          } else {
+            console.warn('Game results not submitted: missing or invalid email', { 
+              email: playerEmail 
+            });
+          }
+        } catch (error) {
+          // Error is already handled in the hook, but log for additional context
+          console.error('Error during all-skills-placed API submission:', error);
+        }
+        
         setGamePhase('results');
       }, 1000);
     }

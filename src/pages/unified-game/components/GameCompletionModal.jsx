@@ -2,11 +2,11 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const GameCompletionModal = ({ 
-  isVisible, 
-  score, 
-  totalSkills, 
-  correctPlacements, 
+const GameCompletionModal = ({
+  isVisible,
+  score,
+  totalSkills,
+  correctPlacements,
   timeRemaining,
   onPlayAgain,
   onViewResults
