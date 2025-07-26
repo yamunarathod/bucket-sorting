@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import EmailForm from './components/EmailForm';
 import GameTimer from '../game-play-screen/components/GameTimer';
-import ActionButtons from './components/ActionButtons';
+
 import { useGameResults } from '../../hooks/useGameResults';
 
 const UnifiedGameScreen = () => {
@@ -16,6 +16,7 @@ const UnifiedGameScreen = () => {
   const [gameStartTime, setGameStartTime] = useState(null);
   const [gameEndTime, setGameEndTime] = useState(null);
   const [animatedBucketCategory, setAnimatedBucketCategory] = useState(null);
+  const [finalWeightedScore, setFinalWeightedScore] = useState(0);
 
   // Initialize game results hook
   const { submitResults } = useGameResults();
@@ -29,6 +30,23 @@ const UnifiedGameScreen = () => {
     { id: 6, skill: "I want to explore Dhamaka selection", category: "INVENTORY" }
   ];
   const [skills] = useState(skillsData);
+
+  // Calculate weighted score out of 10 (50% points, 50% time)
+  const calculateFinalScore = useCallback((correctCount, timeLeft) => {
+    const maxCorrect = skills.length; // 6 skills
+    const maxTime = 180; // 3 minutes
+
+    // Points component (50% weight, max 5 points)
+    const pointsScore = (correctCount / maxCorrect) * 5;
+
+    // Time component (50% weight, max 5 points)
+    const timeScore = (timeLeft / maxTime) * 5;
+
+    // Total score out of 10
+    const finalScore = pointsScore + timeScore;
+
+    return Math.round(finalScore * 100) / 100; // Round to 2 decimal places
+  }, [skills.length]);
 
   const initialBuckets = [
     { category: 'GROWTH', image: '/assets/images/bucket-growth.png' },
@@ -52,24 +70,28 @@ const UnifiedGameScreen = () => {
   const handleTimeUp = useCallback(async () => {
     setIsGameActive(false);
     setGameEndTime(new Date());
-    
+
+    // Calculate final weighted score (50% points, 50% time)
+    const calculatedScore = calculateFinalScore(correctPlacements, timeRemaining);
+    setFinalWeightedScore(calculatedScore);
+
     // Submit game results to API (non-blocking with validation)
     try {
-      if (playerEmail && playerEmail.trim() !== '' && typeof score === 'number') {
-        await submitResults(playerEmail, score);
+      if (playerEmail && playerEmail.trim() !== '' && typeof calculatedScore === 'number') {
+        await submitResults(playerEmail, calculatedScore);
       } else {
-        console.warn('Game results not submitted: missing or invalid data', { 
-          email: playerEmail, 
-          score: score 
+        console.warn('Game results not submitted: missing or invalid data', {
+          email: playerEmail,
+          score: calculatedScore
         });
       }
     } catch (error) {
       // Error is already handled in the hook, but log for additional context
       console.error('Error during game completion API submission:', error);
     }
-    
+
     setGamePhase('results');
-  }, [playerEmail, score, submitResults]);
+  }, [playerEmail, correctPlacements, timeRemaining, calculateFinalScore, submitResults]);
 
   const handleDragStart = (skillId) => {
     setDraggedSkillId(skillId);
@@ -105,29 +127,33 @@ const UnifiedGameScreen = () => {
       setTimeout(async () => {
         setIsGameActive(false);
         setGameEndTime(new Date());
-        
+
+        // Calculate final weighted score when all skills are placed
+        const finalCorrectCount = isCorrect ? correctPlacements + 1 : correctPlacements;
+        const calculatedScore = calculateFinalScore(finalCorrectCount, timeRemaining);
+        setFinalWeightedScore(calculatedScore);
+
         // Submit game results to API when all skills are placed (non-blocking with validation)
         try {
           if (playerEmail && playerEmail.trim() !== '') {
-            const finalScore = isCorrect ? score + 1 : score;
-            if (typeof finalScore === 'number') {
-              await submitResults(playerEmail, finalScore);
+            if (typeof calculatedScore === 'number') {
+              await submitResults(playerEmail, calculatedScore);
             } else {
-              console.warn('Game results not submitted: invalid final score', { 
-                email: playerEmail, 
-                finalScore: finalScore 
+              console.warn('Game results not submitted: invalid final score', {
+                email: playerEmail,
+                finalScore: calculatedScore
               });
             }
           } else {
-            console.warn('Game results not submitted: missing or invalid email', { 
-              email: playerEmail 
+            console.warn('Game results not submitted: missing or invalid email', {
+              email: playerEmail
             });
           }
         } catch (error) {
           // Error is already handled in the hook, but log for additional context
           console.error('Error during all-skills-placed API submission:', error);
         }
-        
+
         setGamePhase('results');
       }, 1000);
     }
@@ -147,7 +173,7 @@ const UnifiedGameScreen = () => {
     }
   };
 
-  
+
 
 
   useEffect(() => {
@@ -235,9 +261,8 @@ const UnifiedGameScreen = () => {
                 <img
                   src={bucket.image}
                   alt={bucket.category}
-                  className={`w-[230px] h-auto transition-transform duration-500 ease-out ${
-                    animatedBucketCategory === bucket.category ? 'animate-bucket-receive' : ''
-                  }`}
+                  className={`w-[230px] h-auto transition-transform duration-500 ease-out ${animatedBucketCategory === bucket.category ? 'animate-bucket-receive' : ''
+                    }`}
                 />
               </div>
             ))}
@@ -254,17 +279,19 @@ const UnifiedGameScreen = () => {
         <main
           className="min-h-screen w-screen bg-cover bg-no-repeat bg-center flex flex-col items-center justify-center"
           style={{
-            backgroundImage: score === 0 ? "url('/assets/images/s4.png')" : "url('/assets/images/s3.png')"
+            backgroundImage: finalWeightedScore === 0 ? "url('/assets/images/s4.png')" : "url('/assets/images/s3.png')"
           }}
         >
-          {score > 0 && (
+          {finalWeightedScore > 0 && (
             <div className="flex flex-col items-center justify-center text-center px-6 pt-[1241px]">
               <h1 className="text-[72px] font-bold text-white mb-4">CONGRATULATIONS!</h1>
-              <p className="text-[64px] text-white mb-2">You Got</p>
+              <p className="text-[64px] text-white mb-2">Your Score</p>
               <div className="text-[74px] font-bold text-white">
-                {score}/{skills.length}
+                {finalWeightedScore}/10
               </div>
-              <p className="text-[74px] text-white mt-2">Correct Answers</p>
+              <p className="text-[48px] text-white mt-2">
+                ({correctPlacements}/{skills.length} Correct • Time Bonus Included)
+              </p>
             </div>
           )}
         </main>
