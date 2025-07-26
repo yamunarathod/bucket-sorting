@@ -18,6 +18,15 @@ const UnifiedGameScreen = () => {
   const [animatedBucketCategory, setAnimatedBucketCategory] = useState(null);
   const [finalWeightedScore, setFinalWeightedScore] = useState(0);
 
+  // Touch drag state management
+  const [touchDragState, setTouchDragState] = useState({
+    isDragging: false,
+    draggedSkill: null,
+    startPosition: { x: 0, y: 0 },
+    currentPosition: { x: 0, y: 0 },
+    draggedElement: null
+  });
+
   // Initialize game results hook
   const { submitResults } = useGameResults();
 
@@ -173,6 +182,87 @@ const UnifiedGameScreen = () => {
     }
   };
 
+  // Touch event handlers
+  const handleTouchStart = (e, skill) => {
+    // Prevent already placed skills from being dragged
+    if (placedSkills[skill.id]) return;
+
+    e.preventDefault(); // Prevent default touch behaviors
+    const touch = e.touches[0];
+    const element = e.currentTarget;
+
+    setTouchDragState({
+      isDragging: true,
+      draggedSkill: skill,
+      startPosition: { x: touch.clientX, y: touch.clientY },
+      currentPosition: { x: touch.clientX, y: touch.clientY },
+      draggedElement: element
+    });
+
+    // Set visual feedback similar to mouse drag
+    setDraggedSkillId(skill.id);
+  };
+
+  const handleTouchMove = useCallback((e) => {
+    if (!touchDragState.isDragging) return;
+
+    e.preventDefault(); // Prevent scrolling during drag
+    const touch = e.touches[0];
+
+    // Use requestAnimationFrame for smooth performance
+    requestAnimationFrame(() => {
+      setTouchDragState(prev => ({
+        ...prev,
+        currentPosition: { x: touch.clientX, y: touch.clientY }
+      }));
+
+      // Update visual position of dragged element
+      if (touchDragState.draggedElement) {
+        const deltaX = touch.clientX - touchDragState.startPosition.x;
+        const deltaY = touch.clientY - touchDragState.startPosition.y;
+
+        touchDragState.draggedElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        touchDragState.draggedElement.style.zIndex = '1000';
+        touchDragState.draggedElement.style.pointerEvents = 'none';
+      }
+    });
+  }, [touchDragState]);
+
+  const handleTouchEnd = (e) => {
+    if (!touchDragState.isDragging) return;
+
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+
+    // Find element under touch point
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    const bucketElement = elementBelow?.closest('[data-bucket-category]');
+
+    // Reset visual state
+    if (touchDragState.draggedElement) {
+      touchDragState.draggedElement.style.transform = '';
+      touchDragState.draggedElement.style.zIndex = '';
+      touchDragState.draggedElement.style.pointerEvents = '';
+    }
+
+    // Process drop if over a valid bucket
+    if (bucketElement && touchDragState.draggedSkill) {
+      const targetCategory = bucketElement.getAttribute('data-bucket-category');
+      handleSkillDrop(touchDragState.draggedSkill, targetCategory);
+    }
+
+    // Reset touch drag state
+    setTouchDragState({
+      isDragging: false,
+      draggedSkill: null,
+      startPosition: { x: 0, y: 0 },
+      currentPosition: { x: 0, y: 0 },
+      draggedElement: null
+    });
+
+    setDraggedSkillId(null);
+  };
+
 
 
 
@@ -210,6 +300,17 @@ const UnifiedGameScreen = () => {
     }
   }, [gamePhase]);
 
+  // Cleanup touch drag state on component unmount or game phase change
+  useEffect(() => {
+    return () => {
+      if (touchDragState.draggedElement) {
+        touchDragState.draggedElement.style.transform = '';
+        touchDragState.draggedElement.style.zIndex = '';
+        touchDragState.draggedElement.style.pointerEvents = '';
+      }
+    };
+  }, [gamePhase, touchDragState.draggedElement]);
+
   return (
     <div className="h-screen bg-background">
       {gamePhase === 'email' && (
@@ -238,10 +339,14 @@ const UnifiedGameScreen = () => {
                   handleDragStart(skill.id);
                 }}
                 onDragEnd={handleDragEnd}
+                onTouchStart={(e) => handleTouchStart(e, skill)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 className={`
                   p-[2px] rounded-lg bg-gradient-to-r from-[#4216EF] to-[#11BBDE]
                   cursor-grab active:cursor-grabbing hover:scale-105 transition
                   ${draggedSkillId === skill.id ? 'opacity-50 scale-105' : ''}
+                  touch-none select-none
                 `}
               >
                 <div className="text-center text-[14px] font-medium py-4 px-3 bg-white rounded-md shadow-sm">
@@ -254,6 +359,7 @@ const UnifiedGameScreen = () => {
             {initialBuckets.map(bucket => (
               <div
                 key={bucket.category}
+                data-bucket-category={bucket.category}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleBucketDrop(e, bucket.category)}
                 className="relative flex flex-col items-center justify-center"

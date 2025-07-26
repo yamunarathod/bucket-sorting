@@ -33,3 +33,28 @@ html, body, #root {
 .animate-bucket-receive {
   animation: bucket-receive-animation 0.5s ease-out; /* Match this duration with the setTimeout in JS */
 }
+
+/* Touch-specific enhancements */
+.touch-none {
+  touch-action: none;
+}
+
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth transitions for touch drag operations */
+.touch-drag-transition {
+  transition: transform 0.2s ease-out;
+}
+
+/* Enhanced touch target size for mobile */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
