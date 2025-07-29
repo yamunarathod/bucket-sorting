@@ -51,7 +51,7 @@ const EmailForm = ({ onEmailSubmit }) => {
     >
       <div className="w-full max-w-3xl flex flex-col items-center">
         <h1 className="text-[32px] sm:text-[40px] md:text-[48px] font-bold text-[#00B5DB] text-center mb-12 sm:mb-16">
-          Sort into buckets
+          Sort into buckets Game
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-8 sm:gap-12 items-center w-full px-4">
@@ -70,7 +70,7 @@ const EmailForm = ({ onEmailSubmit }) => {
             disabled={!isValidEmail || isLoading}
             className="w-full max-w-xs h-[60px] sm:h-[70px] md:h-[80px] bg-[#4315EF] text-white text-lg sm:text-xl md:text-2xl font-semibold rounded-full shadow-xl hover:opacity-90 transition-all"
           >
-            {isLoading ? 'Starting...' : 'Submit'}
+            {isLoading ? 'Starting...' : 'Play'}
           </button>
         </form>
 
