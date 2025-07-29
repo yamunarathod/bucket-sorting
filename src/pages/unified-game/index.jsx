@@ -188,8 +188,15 @@ const UnifiedGameScreen = () => {
     if (placedSkills[skill.id]) return;
 
     e.preventDefault(); // Prevent default touch behaviors
+    e.stopPropagation(); // Prevent event bubbling
+
     const touch = e.touches[0];
     const element = e.currentTarget;
+
+    // Add visual feedback immediately
+    element.style.opacity = '0.5';
+    element.style.transform = 'scale(1.05)';
+    element.style.zIndex = '1000';
 
     setTouchDragState({
       isDragging: true,
@@ -204,46 +211,53 @@ const UnifiedGameScreen = () => {
   };
 
   const handleTouchMove = useCallback((e) => {
-    if (!touchDragState.isDragging) return;
+    if (!touchDragState.isDragging || !touchDragState.draggedElement) return;
 
     e.preventDefault(); // Prevent scrolling during drag
+    e.stopPropagation(); // Prevent event bubbling
+
     const touch = e.touches[0];
+    if (!touch) return;
 
-    // Use requestAnimationFrame for smooth performance
-    requestAnimationFrame(() => {
-      setTouchDragState(prev => ({
-        ...prev,
-        currentPosition: { x: touch.clientX, y: touch.clientY }
-      }));
+    const deltaX = touch.clientX - touchDragState.startPosition.x;
+    const deltaY = touch.clientY - touchDragState.startPosition.y;
 
-      // Update visual position of dragged element
-      if (touchDragState.draggedElement) {
-        const deltaX = touch.clientX - touchDragState.startPosition.x;
-        const deltaY = touch.clientY - touchDragState.startPosition.y;
+    // Update visual position immediately without requestAnimationFrame for better responsiveness
+    touchDragState.draggedElement.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
+    touchDragState.draggedElement.style.zIndex = '1000';
+    touchDragState.draggedElement.style.pointerEvents = 'none';
+    touchDragState.draggedElement.style.opacity = '0.8';
 
-        touchDragState.draggedElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-        touchDragState.draggedElement.style.zIndex = '1000';
-        touchDragState.draggedElement.style.pointerEvents = 'none';
-      }
-    });
-  }, [touchDragState]);
+    // Update state for position tracking
+    setTouchDragState(prev => ({
+      ...prev,
+      currentPosition: { x: touch.clientX, y: touch.clientY }
+    }));
+  }, [touchDragState.isDragging, touchDragState.draggedElement, touchDragState.startPosition]);
 
   const handleTouchEnd = (e) => {
-    if (!touchDragState.isDragging) return;
+    if (!touchDragState.isDragging || !touchDragState.draggedElement) return;
 
     e.preventDefault();
+    e.stopPropagation();
+
     const touch = e.changedTouches[0];
+    if (!touch) {
+      // Reset state if no touch data
+      resetTouchState();
+      return;
+    }
 
     // Find element under touch point
     const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
     const bucketElement = elementBelow?.closest('[data-bucket-category]');
 
-    // Reset visual state
-    if (touchDragState.draggedElement) {
-      touchDragState.draggedElement.style.transform = '';
-      touchDragState.draggedElement.style.zIndex = '';
-      touchDragState.draggedElement.style.pointerEvents = '';
-    }
+    // Reset visual state immediately
+    const element = touchDragState.draggedElement;
+    element.style.transform = '';
+    element.style.zIndex = '';
+    element.style.pointerEvents = '';
+    element.style.opacity = '';
 
     // Process drop if over a valid bucket
     if (bucketElement && touchDragState.draggedSkill) {
@@ -252,6 +266,10 @@ const UnifiedGameScreen = () => {
     }
 
     // Reset touch drag state
+    resetTouchState();
+  };
+
+  const resetTouchState = () => {
     setTouchDragState({
       isDragging: false,
       draggedSkill: null,
@@ -259,7 +277,6 @@ const UnifiedGameScreen = () => {
       currentPosition: { x: 0, y: 0 },
       draggedElement: null
     });
-
     setDraggedSkillId(null);
   };
 
