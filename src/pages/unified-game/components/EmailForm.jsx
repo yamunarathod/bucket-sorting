@@ -68,7 +68,7 @@ const EmailForm = ({ onEmailSubmit }) => {
           <button
             type="submit"
             disabled={!isValidEmail || isLoading}
-            className="w-full max-w-xs h-[60px] sm:h-[70px] md:h-[80px] bg-[#4315EF] text-white text-lg sm:text-xl md:text-2xl font-semibold rounded-full shadow-xl hover:opacity-90 transition-all"
+            className="w-full max-w-xs h-[60px] sm:h-[70px] md:h-[80px] bg-[#4315EF] text-white text-lg sm:text-xl md:text-4xl font-semibold rounded-full shadow-xl hover:opacity-90 transition-all"
           >
             {isLoading ? 'Starting...' : 'Play'}
           </button>
