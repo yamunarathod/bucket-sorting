@@ -31,12 +31,12 @@ const UnifiedGameScreen = () => {
   const { submitResults } = useGameResults();
 
   const skillsData = [
-    { id: 1, skill: "I want to onboard to FBF", category: "GROWTH" },
-    { id: 2, skill: "I want to check return reasons", category: "SELECTION INSIGHTS" },
+    { id: 1, skill: "I want to onboard to FBF", category: "INVENTORY" },
+    { id: 2, skill: "I want to check return reasons", category: "GROWTH" },
     { id: 3, skill: "I want to opt into Google Ads", category: "ADVERTISING" },
-    { id: 4, skill: "I want to change settlement of my product", category: "PAYMENTS" },
-    { id: 5, skill: "I want to understand new market trend", category: "SELECTION INSIGHTS" },
-    { id: 6, skill: "I want to explore Dhamaka selection", category: "INVENTORY" }
+    { id: 4, skill: "I want to change settlement of my product", category: "LISTINGS" },
+    { id: 5, skill: "I want to understand new market trend", category: "GROWTH" },
+    { id: 6, skill: "I want to explore Dhamaka selection", category: "SELECTION INSIGHTS" }
   ];
   const [skills] = useState(skillsData);
 
