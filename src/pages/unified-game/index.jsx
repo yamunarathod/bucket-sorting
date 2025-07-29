@@ -43,7 +43,7 @@ const UnifiedGameScreen = () => {
   // Calculate weighted score out of 10 (50% points, 50% time)
   const calculateFinalScore = useCallback((correctCount, timeLeft) => {
     const maxCorrect = skills.length; // 6 skills
-    const maxTime = 180; // 3 minutes
+    const maxTime = 60; // 3 minutes
 
     // Points component (50% weight, max 5 points)
     const pointsScore = (correctCount / maxCorrect) * 5;
@@ -71,7 +71,7 @@ const UnifiedGameScreen = () => {
     setGamePhase('game');
     setIsGameActive(true);
     setGameStartTime(new Date());
-    setTimeRemaining(180);
+    setTimeRemaining(60);
     localStorage.setItem('playerEmail', email);
     localStorage.setItem('gameStartTime', new Date().toISOString());
   };
