@@ -4,7 +4,8 @@ const EmailForm = ({ onEmailSubmit }) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showEmailForm, setShowEmailForm] = useState(false); // New state to control visibility
+  // State to control which view (and background) is shown
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -39,17 +40,25 @@ const EmailForm = ({ onEmailSubmit }) => {
     }
   };
 
+  // This function will now trigger the state change to show the email form
   const handlePlayClick = () => {
-    setShowEmailForm(true); // Show the email form when "Click here to Play" is clicked
+    setShowEmailForm(true);
   };
 
   const isValidEmail = email.trim() && validateEmail(email);
 
+  // Dynamically set the background image based on the showEmailForm state.
+  // This assumes 'background2.png' and 's1.png' are in your 'public' folder.
+  const backgroundImageUrl = showEmailForm
+    ? "url('/s1.png')"
+    : "url('/background2.png')";
+
   return (
     <div
-      className="h-screen w-screen flex items-center justify-center px-4 overflow-hidden"
+      className="h-screen w-screen flex items-center justify-center px-4 overflow-hidden transition-all duration-500"
       style={{
-        backgroundImage: "url('/assets/images/s1.png')",
+        // The backgroundImage property is now dynamic
+        backgroundImage: backgroundImageUrl,
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
@@ -58,28 +67,22 @@ const EmailForm = ({ onEmailSubmit }) => {
       <div className="min-h-screen flex flex-col items-center justify-center relative w-full">
         {/* Conditional rendering based on showEmailForm state */}
         {!showEmailForm ? (
-          // Initial Welcome Content
+          // Initial Welcome Content with background2.png
           <div className="text-center mb-16 transition-opacity duration-500 ease-in-out">
-            {/* Headings with increased font size and specific color */}
-            <h3 className="text-8xl font-bold mb-4" style={{ color: '#00B5DB', lineHeight: '1' }}>Play More,</h3>
-            <h3 className="text-8xl font-bold" style={{ color: '#00B5DB', lineHeight: '1' }}>Learn More</h3>
-
-            {/* CTA Button with increased font, width, height, and specific background color */}
+     
             <button
               onClick={handlePlayClick}
-              className="text-white text-6xl font-semibold px-20 py-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl mt-20"
-              style={{ backgroundColor: '#4315EF' }} // Applied direct style for specific background color
+              className="text-white text-6xl font-semibold w-[800px] h-[240px] rounded-full  transform hover:scale-105 hover:shadow-xl mt-[900px]"
+              style={{ backgroundColor: 'transparent' }}
             >
-              Click here to Play
             </button>
           </div>
         ) : (
-          // Email Form Content
+          // Email Form Content with s1.png
           <div className="w-full max-w-3xl flex flex-col items-center transition-opacity duration-500 ease-in-out">
             <h1 className="text-[32px] sm:text-[40px] md:text-[48px] font-bold text-[#00B5DB] text-center mb-12 sm:mb-16">
               Sort into buckets Game
             </h1>
-
             <form onSubmit={handleSubmit} className="flex flex-col gap-8 sm:gap-12 items-center w-full px-4">
               <input
                 type="email"
@@ -90,7 +93,6 @@ const EmailForm = ({ onEmailSubmit }) => {
                 required
                 className="w-full max-w-xl h-[64px] sm:h-[80px] md:h-[90px] px-4 sm:px-6 text-lg sm:text-2xl md:text-3xl bg-[#4291C3] border border-[#4315EF] text-white placeholder-white text-center rounded-[12px] shadow-md focus:outline-none"
               />
-
               <button
                 type="submit"
                 disabled={!isValidEmail || isLoading}
@@ -99,7 +101,6 @@ const EmailForm = ({ onEmailSubmit }) => {
                 {isLoading ? 'Starting...' : 'Play'}
               </button>
             </form>
-
             {error && <p className="text-md sm:text-lg text-red-600 mt-6 sm:mt-8 text-center">{error}</p>}
           </div>
         )}
